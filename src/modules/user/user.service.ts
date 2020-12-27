@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/typeorm';
-import { DBName } from '../database/database.model';
+import { DBName, MySQLDMLResult } from '../database/database.model';
 import { Connection } from 'typeorm';
 import { User } from './model/user.model';
 import { JsonUtil } from '../common/util/json.util';
+import { CreateUserDto } from './dto/user.dto';
+import { ResponseWrapper } from '../common/response.wrapper';
 
 @Injectable()
 export class UserService {
@@ -90,5 +92,33 @@ select id,
     }
 
     return null;
+  }
+
+  /**
+   * 사용자를 생성합니다.
+   * @param req
+   */
+  async create(req: CreateUserDto): Promise<ResponseWrapper<User>> {
+    try {
+      const { name, email, phone } = req;
+      const result: MySQLDMLResult = await this.connection.query(
+        `
+insert into user 
+(name, phone, email) 
+values (?, ?, ?) 
+      `,
+        [name, phone, email],
+      );
+      this.logger.debug(`사용자 생성 결과 : ${JSON.stringify(result)}`);
+
+      const user = Object.assign(new User(), req);
+      user.id = result.insertId;
+
+      return new ResponseWrapper<User>().setData(user);
+    } catch (e) {
+      this.logger.error(e.toString());
+      // TODO : 개발/운영 환경에 따른 에러로그 분리 (개발 환경에서는 더 상세한 정보를 내려주기)
+      return new ResponseWrapper<User>().fail().setMessage('user create error');
+    }
   }
 }

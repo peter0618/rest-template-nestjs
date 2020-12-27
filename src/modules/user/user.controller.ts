@@ -1,8 +1,10 @@
-import { Controller, Get, Logger, Param } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './model/user.model';
+import { CreateUserDto } from './dto/user.dto';
+import { ResponseWrapper } from '../common/response.wrapper';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   private readonly logger: Logger = new Logger(this.constructor.name);
 
@@ -20,10 +22,21 @@ export class UserController {
 
   /**
    * 사용자를 조회합니다.
+   * @param id
    */
   @Get(':id')
-  async getById(@Param('id') id: number): Promise<User>{
+  async getById(@Param('id') id: number): Promise<User> {
     this.logger.debug(`getById(id: ${id})`);
     return await this.userService.getById(id);
+  }
+
+  /**
+   * 사용자를 생성합니다.
+   * @param req
+   */
+  @Post()
+  async create(@Body() req: CreateUserDto): Promise<ResponseWrapper<User>> {
+    this.logger.debug(`create(req: ${JSON.stringify(req)})`);
+    return await this.userService.create(req);
   }
 }
