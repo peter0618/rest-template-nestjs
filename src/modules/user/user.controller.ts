@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './model/user.model';
-import { CreateUserDto } from './dto/user.dto';
+import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { ResponseWrapper } from '../common/response.wrapper';
 
 @Controller('users')
@@ -38,5 +38,26 @@ export class UserController {
   async create(@Body() req: CreateUserDto): Promise<ResponseWrapper<User>> {
     this.logger.debug(`create(req: ${JSON.stringify(req)})`);
     return await this.userService.create(req);
+  }
+
+  /**
+   * 사용자 정보를 수정합니다.
+   * @param id
+   * @param req
+   */
+  @Put(':id')
+  async update(@Param('id') id: number, @Body() req: UpdateUserDto): Promise<ResponseWrapper<User>> {
+    this.logger.debug(`update(id: ${id}, req: ${req})`);
+    return await this.userService.update(id, req);
+  }
+
+  /**
+   * 사용자를 삭제합니다. (soft delete 처리)
+   * TODO : 작성해야 합니다.
+   * @param id
+   */
+  @Delete(':id')
+  async delete(@Param('id') id: number) {
+    return null;
   }
 }
