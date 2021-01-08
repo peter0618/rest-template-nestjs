@@ -53,11 +53,11 @@ export class UserController {
 
   /**
    * 사용자를 삭제합니다. (soft delete 처리)
-   * TODO : 작성해야 합니다.
    * @param id
    */
   @Delete(':id')
-  async delete(@Param('id') id: number) {
-    return null;
+  async delete(@Param('id') id: number): Promise<ResponseWrapper<User>> {
+    this.logger.debug(`delete(id: ${id})`);
+    return await this.userService.delete(id);
   }
 }

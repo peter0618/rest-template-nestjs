@@ -14,6 +14,8 @@ export class UserService {
 
   /**
    * 사용자 목록을 조회합니다.
+   * - 삭제되지 않은 사용자만 조회됩니다.
+   * TODO : 검색조건을 추가해야 합니다.
    */
   async getList(): Promise<[User]> {
     try {
@@ -27,7 +29,9 @@ select id,
        is_deleted,
        date_format(updated_at, '%Y-%m-%d') as updated_at,
        date_format(created_at, '%Y-%m-%d') as created_at
-  from user`);
+  from user
+ where is_used is true
+   and is_deleted is false`);
 
       const rows = JsonUtil.snakeToCamelCase(rawRows);
 
@@ -152,6 +156,31 @@ update user
     } catch (e) {
       this.logger.error(e.toString());
       return new ResponseWrapper<User>().fail().setMessage('user update error');
+    }
+  }
+
+  /**
+   * 사용자를 삭제합니다. (soft delete 처리)
+   * @param id
+   */
+  async delete(id: number) {
+    try {
+      const result = await this.connection.query(
+        `
+update user
+   set is_used = 0,
+       is_deleted = 1
+ where id = ?
+      `,
+        [id],
+      );
+      this.logger.debug(`사용자 정보 삭제 결과 : ${JSON.stringify(result)}`);
+
+      const user = await this.getById(id);
+      return new ResponseWrapper<User>().setData(user);
+    } catch (e) {
+      this.logger.error(e.toString());
+      return new ResponseWrapper<User>().fail().setMessage('user delete error');
     }
   }
 }
