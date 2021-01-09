@@ -103,9 +103,33 @@ select id,
    * @param req
    */
   async create(req: CreateUserDto): Promise<ResponseWrapper<User>> {
+    const runner = this.connection.createQueryRunner();
     try {
       const { name, email, phone } = req;
-      const result: MySQLDMLResult = await this.connection.query(
+
+      await runner.startTransaction();
+      // 전화번호를 unique 하게 저장하기 위해 아래와 같이 작성합니다. (for update 로 베타적 LOCK 활용)
+      const resultOfGetUserByPhone = await runner.query(
+        `
+select * 
+  from user 
+ where phone = ?
+   and is_used is true
+   and is_deleted is false
+   for update
+      `,
+        [phone],
+      );
+      this.logger.debug(`resultOfGetUserByPhone : ${resultOfGetUserByPhone}`);
+
+      if (resultOfGetUserByPhone.length > 0) {
+        const cancelMessage = `휴대폰 번호 중복 발생! 사용자 생성 취소`;
+        this.logger.debug(cancelMessage);
+        await runner.commitTransaction();
+        return new ResponseWrapper<User>().fail().setMessage('phone duplicate error');
+      }
+
+      const result: MySQLDMLResult = await runner.query(
         `
 insert into user 
 (name, phone, email) 
@@ -117,12 +141,16 @@ values (?, ?, ?)
 
       const user = Object.assign(new User(), req);
       user.id = result.insertId;
+      await runner.commitTransaction();
 
       return new ResponseWrapper<User>().setData(user);
     } catch (e) {
       this.logger.error(e.toString());
+      await runner.rollbackTransaction();
       // TODO : 개발/운영 환경에 따른 에러로그 분리 (개발 환경에서는 더 상세한 정보를 내려주기)
       return new ResponseWrapper<User>().fail().setMessage('user create error');
+    } finally {
+      await runner.release();
     }
   }
 
@@ -135,7 +163,7 @@ values (?, ?, ?)
     try {
       const { name, email, phone } = req;
 
-      // TODO : 이름이나 전화번호 등에 unique 조건을 주고 중복확인을 하는 로직을 추가합니다.
+      // TODO : 휴대폰 번호가 동일하게 입력되지 않도록 방지해야 합니다.
 
       const result: MySQLDMLResult = await this.connection.query(
         `

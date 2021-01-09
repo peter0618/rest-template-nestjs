@@ -10,7 +10,8 @@ NestJS 기반의 Rest API template project 입니다.
 
 * REST API 공통 응답 포맷 (O)
 * DB 연동 (O)
-* 기본 CRUD API
+* user CRUD API (O)
+* 휴대폰 번호가 일치하는 user 생성 방지 (O)
 * Paging 처리
 * 검색 처리
 * Swagger
