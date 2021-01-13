@@ -9,6 +9,8 @@ export class User {
   phone: string;
   @ApiProperty({ description: '이메일' })
   email: string;
+  @ApiProperty({ description: '생일' })
+  birthday: string;
   @ApiProperty({ description: '사용여부' })
   isUsed: boolean;
   @ApiProperty({ description: '삭제여부' })

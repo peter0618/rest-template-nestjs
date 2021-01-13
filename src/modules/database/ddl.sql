@@ -11,3 +11,8 @@ CREATE TABLE `user` (
   KEY `idx_mobile` (`phone`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='사용자 테이블'
 ;
+
+## 생일 컬럼 추가
+ALTER TABLE `rest_template_db`.`user`
+ADD COLUMN `birthday` DATE NULL DEFAULT NULL COMMENT '생일' AFTER `email`
+;

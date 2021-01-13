@@ -19,3 +19,4 @@ NestJS 기반의 Rest API template project 입니다.
 * 로그인/인증 예제 (jwt)
 * typeorm
 * 개발/운영 환경에 따른 에러로그 분리
+* timeUtil 작성 (dateFormatter 등)

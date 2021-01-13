@@ -7,6 +7,8 @@ export class CreateUserDto {
   phone: string;
   @ApiProperty({ description: '이메일', required: false })
   email?: string;
+  @ApiProperty({ description: '생일', required: false })
+  birthday?: string;
 }
 
 export class UpdateUserDto {
@@ -16,4 +18,6 @@ export class UpdateUserDto {
   phone?: string;
   @ApiProperty({ description: '이메일', required: false })
   email?: string;
+  @ApiProperty({ description: '생일', required: false })
+  birthday?: string;
 }

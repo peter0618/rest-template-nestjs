@@ -25,6 +25,7 @@ select id,
        name,
        phone,
        email,
+       date_format(birthday, '%Y-%m-%d') as birthday,
        is_used,
        is_deleted,
        date_format(updated_at, '%Y-%m-%d') as updated_at,
@@ -36,13 +37,14 @@ select id,
       const rows = JsonUtil.snakeToCamelCase(rawRows);
 
       return rows.map(row => {
-        const { id, name, phone, email, isUsed, isDeleted, updatedAt, createdAt } = row;
+        const { id, name, phone, email, birthday, isUsed, isDeleted, updatedAt, createdAt } = row;
 
         return {
           id,
           name,
           phone,
           email,
+          birthday,
           isUsed: isUsed == 1,
           isDeleted: isDeleted == 1,
           updatedAt,
@@ -68,6 +70,7 @@ select id,
        name,
        phone,
        email,
+       date_format(birthday, '%Y-%m-%d') as birthday,
        is_used,
        is_deleted,
        date_format(updated_at, '%Y-%m-%d') as updated_at,
@@ -79,13 +82,14 @@ select id,
 
       const row = JsonUtil.snakeToCamelCase(rawRows[0]);
 
-      const { name, phone, email, isUsed, isDeleted, updatedAt, createdAt } = row;
+      const { name, phone, email, birthday, isUsed, isDeleted, updatedAt, createdAt } = row;
 
       return {
         id,
         name,
         phone,
         email,
+        birthday,
         isUsed: isUsed == 1,
         isDeleted: isDeleted == 1,
         updatedAt,
@@ -105,7 +109,7 @@ select id,
   async create(req: CreateUserDto): Promise<ResponseWrapper<User>> {
     const runner = this.connection.createQueryRunner();
     try {
-      const { name, email, phone } = req;
+      const { name, email, phone, birthday } = req;
 
       await runner.startTransaction();
       // 전화번호를 unique 하게 저장하기 위해 아래와 같이 작성합니다. (for update 로 베타적 LOCK 활용)
@@ -132,10 +136,10 @@ select *
       const result: MySQLDMLResult = await runner.query(
         `
 insert into user 
-(name, phone, email) 
-values (?, ?, ?) 
+(name, phone, email, birthday) 
+values (?, ?, ?, ?) 
       `,
-        [name, phone, email],
+        [name, phone, email, birthday],
       );
       this.logger.debug(`사용자 생성 결과 : ${JSON.stringify(result)}`);
 
@@ -161,7 +165,7 @@ values (?, ?, ?)
    */
   async update(id: number, req: UpdateUserDto): Promise<ResponseWrapper<User>> {
     try {
-      const { name, email, phone } = req;
+      const { name, email, phone, birthday } = req;
 
       // TODO : 휴대폰 번호가 동일하게 입력되지 않도록 방지해야 합니다.
 
@@ -170,10 +174,11 @@ values (?, ?, ?)
 update user
    set name = ?,
        phone = ?,
-       email = ?
+       email = ?,
+       birthday = ?
  where id = ?  
       `,
-        [name, phone, email, id],
+        [name, phone, email, birthday, id],
       );
       this.logger.debug(`사용자 정보 수정 결과 : ${JSON.stringify(result)}`);
 
