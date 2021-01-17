@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './model/user.model';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
@@ -59,6 +59,7 @@ export class UserController {
       },
     },
   })
+  @UsePipes(new ValidationPipe())
   @Post()
   async create(@Body() req: CreateUserDto): Promise<ResponseWrapper<User>> {
     this.logger.debug(`create(req: ${JSON.stringify(req)})`);
@@ -82,6 +83,7 @@ export class UserController {
       },
     },
   })
+  @UsePipes(new ValidationPipe())
   @Put(':id')
   async update(@Param('id') id: number, @Body() req: UpdateUserDto): Promise<ResponseWrapper<User>> {
     this.logger.debug(`update(id: ${id}, req: ${req})`);
