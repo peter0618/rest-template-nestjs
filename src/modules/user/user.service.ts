@@ -6,6 +6,7 @@ import { User } from './model/user.model';
 import { JsonUtil } from '../common/util/json.util';
 import { CreateUserDto, PatchUserDto, UpdateUserDto } from './dto/user.dto';
 import { ResponseWrapper } from '../common/response.wrapper';
+import { hash } from '../common/util/cipher';
 
 @Injectable()
 export class UserService {
@@ -109,7 +110,7 @@ select id,
   async create(req: CreateUserDto): Promise<ResponseWrapper<User>> {
     const runner = this.connection.createQueryRunner();
     try {
-      const { name, email, phone, birthday } = req;
+      const { name, email, phone, birthday, password } = req;
 
       await runner.startTransaction();
       // 전화번호를 unique 하게 저장하기 위해 아래와 같이 작성합니다. (for update 로 베타적 LOCK 활용)
@@ -133,17 +134,19 @@ select *
         return new ResponseWrapper<User>().fail().setMessage('phone duplicate error');
       }
 
+      const hashPassword = await hash(password);
+
       const result: MySQLDMLResult = await runner.query(
         `
 insert into user 
-(name, phone, email, birthday) 
-values (?, ?, ?, ?) 
+(name, phone, email, birthday, password) 
+values (?, ?, ?, ?, ?) 
       `,
-        [name, phone, email, birthday],
+        [name, phone, email, birthday, hashPassword],
       );
       this.logger.debug(`사용자 생성 결과 : ${JSON.stringify(result)}`);
 
-      const user = Object.assign(new User(), req);
+      const user = Object.assign(new User(), { name, phone, email, birthday });
       user.id = result.insertId;
       await runner.commitTransaction();
 
@@ -245,7 +248,6 @@ update user
       this.logger.error(e.toString());
       return new ResponseWrapper().fail();
     }
-
   }
 
   /**
@@ -270,4 +272,21 @@ update user
     }
     return result;
   }
+
+  /**
+   * DB에 평문으로 저장되어 있는 password 에 bcrypt 를 적용하기 위한 임시 로직입니다.
+   */
+//   async applyBcryptToPasswords() {
+//     const rawRows = await this.connection.query(`select id, password from user`);
+//     for (const row of rawRows) {
+//       const hashPassword = await hash(row.password);
+//       await this.connection.query(
+//         `
+// update user
+//    set password = ?
+//  where id = ?`,
+//         [hashPassword, row.id],
+//       );
+//     }
+//   }
 }

@@ -13,7 +13,7 @@ describe('cipher', () => {
   });
 
   it('should be valid', async () => {
-    const result = await isHashValid('abcd1234', '$2b$10$0CB3Xj8y1EpBg.JtBol/1Oj.4.dSWb7fqT33/m.tqWl54PoNjzUO2');
+    const result = await isHashValid('1234', '$2b$10$dIg5RgdS6qAXNRwv5eU.uOFT1VHkkbwdYHkwGTEEoomW9neDFqP3O');
     console.log(result);
     expect(result).toEqual(true);
   })
