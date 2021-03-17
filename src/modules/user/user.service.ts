@@ -4,7 +4,7 @@ import { DBName, MySQLDMLResult } from '../database/database.model';
 import { Connection } from 'typeorm';
 import { User } from './model/user.model';
 import { JsonUtil } from '../common/util/json.util';
-import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { CreateUserDto, PatchUserDto, UpdateUserDto } from './dto/user.dto';
 import { ResponseWrapper } from '../common/response.wrapper';
 
 @Injectable()
@@ -215,5 +215,59 @@ update user
       this.logger.error(e.toString());
       return new ResponseWrapper<User>().fail().setMessage('user delete error');
     }
+  }
+
+  /**
+   * 사용자 정보를 수정(Patch) 합니다.
+   * @param id
+   * @param req
+   */
+  async patch(id: number, req: PatchUserDto) {
+    try {
+      if (Object.keys(req).length === 0) {
+        this.logger.debug(`no patch data!!`);
+        return new ResponseWrapper().fail().setMessage('no patch data!!');
+      }
+
+      const patchObject = this.makePatchObject(req);
+      this.logger.debug(`patchObject: ${JSON.stringify(patchObject)}`);
+      const result = await this.connection
+        .createQueryBuilder()
+        .update('user')
+        .set(patchObject)
+        .where('id = :id', { id })
+        .execute();
+
+      this.logger.debug(`patch result : ${JSON.stringify(result)}`);
+
+      return new ResponseWrapper();
+    } catch (e) {
+      this.logger.error(e.toString());
+      return new ResponseWrapper().fail();
+    }
+
+  }
+
+  /**
+   * patch 할 데이터 Object 를 생성합니다. (db 컬럼 : value)
+   * @param req
+   * @private
+   */
+  private makePatchObject(req: PatchUserDto) {
+    const result = {};
+    const { birthday, email, name, phone } = req;
+    if (birthday) {
+      result['birthday'] = birthday;
+    }
+    if (email) {
+      result['email'] = email;
+    }
+    if (name) {
+      result['name'] = name;
+    }
+    if (phone) {
+      result['phone'] = phone;
+    }
+    return result;
   }
 }

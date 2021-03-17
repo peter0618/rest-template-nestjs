@@ -1,7 +1,19 @@
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Logger,
+  Param,
+  Patch,
+  Post,
+  Put,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './model/user.model';
-import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { CreateUserDto, PatchUserDto, UpdateUserDto } from './dto/user.dto';
 import { ResponseWrapper } from '../common/response.wrapper';
 import { ApiExtraModels, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -88,6 +100,18 @@ export class UserController {
   async update(@Param('id') id: number, @Body() req: UpdateUserDto): Promise<ResponseWrapper<User>> {
     this.logger.debug(`update(id: ${id}, req: ${req})`);
     return await this.userService.update(id, req);
+  }
+
+  /**
+   * 사용자 정보를 수정(Patch) 합니다.
+   * @param id
+   * @param req
+   */
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @Patch(':id')
+  async patch(@Param('id') id: number, @Body() req: PatchUserDto) {
+    this.logger.debug(`patch(id: ${id}, req: ${JSON.stringify(req)})`);
+    return await this.userService.patch(id, req);
   }
 
   /**
