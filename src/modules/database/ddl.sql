@@ -16,3 +16,10 @@ CREATE TABLE `user` (
 ALTER TABLE `rest_template_db`.`user`
 ADD COLUMN `birthday` DATE NULL DEFAULT NULL COMMENT '생일' AFTER `email`
 ;
+
+## phone 컬럼을 UNIQUE INDEX 로 추가
+alter table `user` drop index idx_mobile;
+alter table `user` add unique index idx_phone (phone);
+
+## 비밀번호 컬럼 추가
+alter table `user` add column password varchar(256) default null COMMENT '비밀번호' AFTER `phone`;

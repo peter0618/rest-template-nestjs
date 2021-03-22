@@ -13,6 +13,7 @@ NestJS 기반의 Rest API template project 입니다.
 * user CRUD API (O)
 * 휴대폰 번호가 일치하는 user 생성 방지 (O)
 * Swagger (O)
+* 비밀번호 암호화
 * Paging 처리
 * 검색 처리
 * validation (O)
